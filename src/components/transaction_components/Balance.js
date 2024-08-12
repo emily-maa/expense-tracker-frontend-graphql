@@ -1,10 +1,9 @@
-import React, {useState, useEffect, useContext} from 'react'
-import { GlobalContext} from '../../context/GlobalState';
+import React, {useContext} from 'react'
 import { UserContext } from '../../context/UserContext'
+import { useQuery, gql } from '@apollo/client'
 
 //Money formatter function
 function moneyFormatter(num) {
-  console.log(num)
   let p = Number(num).toFixed(2).split('.');
   return (
     '$ ' + (p[0].split('')[0]=== '-' ? '-' : '') +
@@ -19,39 +18,27 @@ function moneyFormatter(num) {
   );
 }
 
+const USER_BALANCE_QUERY = gql`
+  query get_user($id:Int){
+    user(id:$id){
+      balance{
+        net_balance
+      }
+    }
+  }
+`;
+
 export default function Balance() {
   const {user} = useContext(UserContext);
-  // const { transactions }= useContext(GlobalContext);
-
-  // const amounts = transactions.map(transaction => transaction.amount);
-
-  // const total = amounts.reduce((a, n) => (a + Number(n)), 0);
-  const [balance, setBalance] = useState(0);
-
-  const getBalance = () =>{
-    fetch(`http://localhost:8080/getBalance?id=${user.id}`)
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        setBalance(data["currentBalance"])
-      });
-      
-  }
-  useEffect(() => {
-    getBalance()
-    const interval=setInterval(()=>{
-      getBalance()
-      },1000)
- 
- 
-     return()=>clearInterval(interval)
-  },[]);
+  const {data} = useQuery(USER_BALANCE_QUERY,{
+    variables: {id: user.id},
+    pollInterval:500
+  });
 
   return (
     <div>
       <h4>Your Balance</h4>
-      <h1>{moneyFormatter(balance)}</h1>
+      <h1>{moneyFormatter(data?.user.balance.net_balance)}</h1>
     </div>
   )
 }

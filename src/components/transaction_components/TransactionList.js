@@ -1,42 +1,34 @@
-import React, {useState, useEffect, useContext} from 'react'
-import { GlobalContext} from '../../context/GlobalState';
+import React, {useContext} from 'react'
 import Transaction from './Transaction'
 import { UserContext } from '../../context/UserContext'
+import { useQuery, gql } from '@apollo/client'
+
+const USER_TRANSACTION_QUERY = gql`
+  query get_user($id:Int){
+    user(id:$id){
+      transactions{
+        transaction_id
+        text
+        amount
+      }
+    }
+  }
+`;
 
 export const TransactionList = () => {
   // const { transactions }= useContext(GlobalContext);
-  const [transactions, setTransactions] = useState([]);
+  // const [transactions, setTransactions] = useState([]);
   const {user} = useContext(UserContext);
-
-  const getTransactions = () =>{
-    fetch(`http://localhost:8080/getTransactions?id=${user.id}`)
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        // console.log(data);
-        setTransactions(data)
-        console.log(transactions);
-        console.log(transactions.type)
-      });
-
-  }
-  useEffect(() => {
-    getTransactions()
-    const interval=setInterval(()=>{
-      getTransactions()
-      },1000)
- 
- 
-     return()=>clearInterval(interval)
-  }, []);
+  const {data} = useQuery(USER_TRANSACTION_QUERY,{
+    variables: {id: user.id},
+    pollInterval:500
+  });
   
   return (
     <>
       <h3>History</h3>
       <ul className="list">
-        {transactions.map(transaction => (<Transaction key={transaction.id} transaction={transaction}/>))}
-        
+        {data?.user.transactions?.map(transaction => (<Transaction key={transaction.transaction_id} transaction={transaction}/>))}
       </ul>
     </>
   )

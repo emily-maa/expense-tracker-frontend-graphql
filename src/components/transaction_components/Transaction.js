@@ -1,32 +1,35 @@
 import React,{ useContext } from 'react'
-import { GlobalContext} from '../../context/GlobalState';
 import { UserContext } from '../../context/UserContext'
+import { useMutation, gql } from '@apollo/client'
+
+const DELETED_TRANSACTION = gql`
+    mutation changeTransaction($id: Int, $transaction_id: Int){
+        deleteTransaction(
+            id: $id
+            transaction_id: $transaction_id
+        )
+        {
+            transaction_id
+            text
+            amount
+        }
+    }
+`;
 
 const Transaction = ( {transaction} ) => {
-    // const {deleteTransaction } = useContext(GlobalContext)
     const sign = transaction.amount < 0 ? '-':'+';
     const {user} = useContext(UserContext);
+    const[removeTransaction] = useMutation(DELETED_TRANSACTION);
 
     const deleteTransaction = id => {
-      fetch(`http://localhost:8080/deleteTransaction/${transaction.id}?id=${user.id}`, {
-        method: "DELETE",
-      })
-        // .then(response => response.json())
-        // .then(() => {
-        //   setUsers(values => {
-        //     return values.filter(item => item.id !== id)
-        //   })
-        //   AppToaster.show({
-        //     message: "User deleted successfully",
-        //     intent: "success",
-        //     timeout: 3000,
-        //   })
-        // })
+      removeTransaction({
+            variables: {id:user.id,transaction_id:transaction.transaction_id}
+        })
     }
 
   return (
     <li className={transaction.amount < 0 ? 'minus':'plus'}>
-        {transaction.text} <span>{sign}${Math.abs(transaction.amount)}</span><button className="delete-btn" onClick={()=>deleteTransaction(transaction.id)}>x</button>
+        {transaction.text} <span>{sign}${Math.abs(transaction.amount)}</span><button className="delete-btn" onClick={()=>deleteTransaction(transaction.transaction_id)}>x</button>
     </li>
   )
 }

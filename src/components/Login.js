@@ -3,41 +3,52 @@ import { useNavigate } from "react-router-dom";
 import { UserContext } from '../context/UserContext.js';
 import "../App.js";
 import "../css/Login.css"
+import { useQuery, gql } from '@apollo/client'
 
-
+const USER_STATUS_QUERY = gql`
+  query get_user($id: Int, $password: String){
+    user(id: $id) {
+      status
+      id
+      username
+      password
+    }
+    login(
+      id:$id
+      password:$password
+    )
+  }
+`;
 const Login = () => {
     const [id, setId] = useState(null);
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const navigate = useNavigate();
     const { setUser } = useContext(UserContext);
+    const { data } = useQuery(USER_STATUS_QUERY,{
+      skip: id===null || password==="",
+      variables:{id:parseInt(id),password}
+    });
 
     const handleLogin = (e) => {
-        e.preventDefault();
-        fetch(`http://localhost:8080/login?id=${id}&&password=${password}`)
-        .then((res) => {
-          return res.json();
-        })
-        .then((data) => {
-          if(!data){
-            setError("Invalid ID or Password");
-                  return;
+       e.preventDefault();
+       if (data){
+        const {user,login} = data;
+        if(!login){
+          setError("Invalid ID or Password");
+          return;
+        }
+        else{
+          let user_data = {
+            "id":user.id,
+            "username":user.username,
+            "password":user.password
           }
-          else{
-            fetch(`http://localhost:8080/getUser?id=${id}`)
-            .then((res) => {
-              return res.json();
-            })
-            .then((user_data)=>{
-              setUser(user_data) 
-              navigate("/dashboard");
-              return;
-            })
-          }
-        })
-        .catch(error => {
-          console.error("Error with fetching data")
-        });
+          setUser(user_data)
+          navigate("/dashboard");
+          return;
+        }
+       }
     }
       
     return (

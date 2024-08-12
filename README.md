@@ -5,7 +5,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Overview
 This is the frontend portion of my expense tracker app. The UI is based on the work from [Brad Traversy's Expense Tracker React project](https://github.com/bradtraversy/expense-tracker-react). However, I developed my own backend APIs using Spring Boot and integrated them into this React app. The backend code can be found in a separate repository [here](https://github.com/emily-maa/expense-tracker-backend-rest-service).
 
-Additionally, this is the REST service version of the app. I also have a version where the frontend and backend communicate using Netflix DGS GraphQL.
+Additionally, this is the Netflix DGS GraphQL version of the app. I also have a version where the frontend and backend communicate using rest service.
 
 ## Available Scripts
 

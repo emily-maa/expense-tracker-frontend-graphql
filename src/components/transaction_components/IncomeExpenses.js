@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useContext} from 'react'
-import { GlobalContext} from '../../context/GlobalState';
+import React, {useContext} from 'react'
 import { UserContext } from '../../context/UserContext'
+import { useQuery, gql } from '@apollo/client'
 
 //Money formatter function
 function moneyFormatter(num) {
@@ -17,53 +17,34 @@ function moneyFormatter(num) {
     p[1]
   );
 }
-const IncomeExpenses = () => {
-  // const { transactions }= useContext(GlobalContext);
-  // const amounts = transactions.map(transaction => transaction.amount);
-  // const income = amounts
-  //   .filter(item => item > 0)
-  //   .reduce((a, n) => (a + Number(n)), 0);
 
-  // const expense = (
-  //   amounts.filter(item => item < 0).reduce((acc, item) => (acc += Number(item)), 0) *
-  //   -1
-  // );
-  const [income, setIncome] = useState(0);
-  const [expense, setExpense] = useState(0);
-  const {user} = useContext(UserContext);
-  
-  const getIncomeExpense = () =>{
-    fetch(`http://localhost:8080/getBalance?id=${user.id}`)
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        // console.log(data);
-        setIncome(data["income"])
-        setExpense(data["expense"])
-      });
+const USER_BALANCE_QUERY = gql`
+  query get_user($id:Int){
+    user(id:$id){
+      balance{
+        income
+        expense
+      }
+    }
   }
-  useEffect(() => {
-    getIncomeExpense()
-    const interval=setInterval(()=>{
-      getIncomeExpense()
-      },1000)
- 
- 
-     return()=>clearInterval(interval)
-  }, []);
-    
+`;
+const IncomeExpenses = () => {
+  const {user} = useContext(UserContext);
+  const {data} = useQuery(USER_BALANCE_QUERY,{
+    variables: {id: user.id},
+    pollInterval:500
+  });
 
   return (
     <>
       <div className="inc-exp-container">
         <div>
           <h4>Income</h4>
-    <p className="money plus">{moneyFormatter(income)}</p>
+    <p className="money plus">{moneyFormatter(data?.user.balance.income)}</p>
         </div>
         <div>
           <h4>Expense</h4>
-    <p className="money minus">{moneyFormatter(expense)}</p>
+    <p className="money minus">{moneyFormatter(data?.user.balance.expense)}</p>
         </div>
       </div>
     </>

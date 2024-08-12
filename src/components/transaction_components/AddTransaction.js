@@ -1,35 +1,35 @@
 import React,{useState, useContext} from 'react'
-import { GlobalContext} from '../../context/GlobalState';
 import { UserContext } from '../../context/UserContext'
+import { useMutation, gql } from '@apollo/client'
+
+const NEW_TRANSACTION = gql`
+    mutation changeTransaction($id: Int, $transaction_id: Int, $text: String, $amount: Float){
+        addTransaction(
+            id: $id
+            transaction_id: $transaction_id
+            text: $text
+            amount: $amount
+        )
+        {
+            transaction_id
+            text
+            amount
+        }
+    }
+`;
 
 const AddTransaction = () => {
     const [text,setText] = useState('')
     const [amount,setAmount] = useState(0)
     const {user} = useContext(UserContext);
-    console.log(amount)
-
-    const { addTransaction } = useContext(GlobalContext)
+    const [createTransaction] = useMutation(NEW_TRANSACTION)
 
     const onSubmit = e => {
         e.preventDefault();
 
-        const newTransaction = {
-            id: Math.floor(Math.random() * 100000000),
-            text,
-            amount
-        }
-
-        // addTransaction(newTransaction);
-        fetch(`http://localhost:8080/addTransaction?id=${user.id}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newTransaction),
+        createTransaction({
+            variables: {id:user.id,transaction_id:Math.floor(Math.random()*100000000),text,amount:Number(amount)}
         })
-        // .then(response => response.json())
-        // .then(data => console.log('Transaction added:', data))
-        // .catch(error => console.error('Error creating transaction:', error));
     }
     return (
         <>

@@ -3,7 +3,7 @@ import Login from './components/Login.js'
 import Dashboard from './components/Dashboard';
 import {BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 
-import { GlobalProvider } from './context/GlobalState';
+// import { GlobalProvider } from './context/GlobalState';
 import {UserProvider} from './context/UserContext'
 
 import './css/App.css';
